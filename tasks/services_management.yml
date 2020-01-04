@@ -1,0 +1,29 @@
+# Select services by parameters for management
+- name: "Select services by parameters for management"
+  set_fact:
+    selected_services: "{{ selected_services|default([]) + item.services }}"
+  with_items: "{{ list_services }}"
+  no_log: true
+  when:
+    #  True if:
+    #  - the parameter (any) is defined and matches (is in the list)
+    #  - the parameter contain `all`
+    #  - undefined parameters are not taken into account, they are set to undefined and they are considered true
+    - "ansible_os_family in (item.os_family | default('all')) or ['all','undefined'] | intersect (item.os_family | default('undefined')) | length > 0"
+    - "ansible_distribution in (item.os_distribution | default('all')) or ['all','undefined'] | intersect (item.os_distribution | default('undefined')) | length > 0"
+    - "ansible_distribution_major_version in (item.os_distribution_major_version | default('all')) or ['all','undefined'] | intersect (item.os_distribution_major_version | default('undefined')) | length > 0"
+    - "inventory_hostname in (item.host_group_names_inventory | default('all')) or group_names | intersect(item.host_group_names_inventory | default('undefined')) | length > 0 or ['all','undefined'] | intersect (item.host_group_names_inventory | default('undefined')) | length > 0"
+
+# Management selected services
+- name: "Management selected services"
+  service:
+    name: "{{ item.name }}"
+    enabled: "{{ item.enabled|default(omit) }}"
+    state: "{{ item.state|default(omit) }}"
+    runlevel: "{{ item.runlevel|default(omit) }}"
+    sleep: "{{ item.sleep|default(omit) }}"
+    arguments: "{{ item.arguments|default(omit) }}"
+    use: "{{ item.use|default(omit) }}"
+    pattern: "{{ item.pattern|default(omit) }}"
+  with_items: "{{ selected_services }}"
+  when: selected_services is defined

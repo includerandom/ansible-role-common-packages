@@ -1,0 +1,131 @@
+# Select packages by parameters for installation
+- name: "Select packages by parameters for installation"
+  set_fact:
+    selected_packages: "{{ selected_packages|default([]) + item.packages }}"
+  with_items: "{{ list_packages }}"
+  no_log: true
+  when:
+    #  True if:
+    #  - the parameter (any) is defined and matches (is in the list)
+    #  - the parameter contain `all`
+    #  - undefined parameters are not taken into account, they are set to undefined and they are considered true
+    - "ansible_os_family in (item.os_family | default('all')) or ['all','undefined'] | intersect (item.os_family | default('undefined')) | length > 0"
+    - "ansible_distribution in (item.os_distribution | default('all')) or ['all','undefined'] | intersect (item.os_distribution | default('undefined')) | length > 0"
+    - "ansible_distribution_major_version in (item.os_distribution_major_version | default('all')) or ['all','undefined'] | intersect (item.os_distribution_major_version | default('undefined')) | length > 0"
+    - "ansible_pkg_mgr in (item.packages_manager | default('all')) or ['all','undefined'] | intersect (item.packages_manager | default('undefined')) | length > 0"
+    - "inventory_hostname in (item.host_group_names_inventory | default('all')) or group_names | intersect(item.host_group_names_inventory | default('undefined')) | length > 0 or ['all','undefined'] | intersect (item.host_group_names_inventory | default('undefined')) | length > 0"
+
+# We form arrays of packages into different variables depending on the status of present / latest / absent
+- name: "Select packages with state=present"
+  set_fact:
+    selected_packages_present: "{{ selected_packages_present|default([]) + [item.name] }}"
+  with_items: "{{ selected_packages }}"
+  no_log: true
+  when: item.state | default('present') == "present"
+
+- name: "Select packages with state=latest"
+  set_fact:
+    selected_packages_latest: "{{ selected_packages_latest|default([]) + [item.name] }}"
+  with_items: "{{ selected_packages }}"
+  no_log: true
+  when: item.state | default('present') == "latest"
+
+- name: "Select packages with state=absent"
+  set_fact:
+    selected_packages_absent: "{{ selected_packages_absent|default([]) + [item.name] }}"
+  with_items: "{{ selected_packages }}"
+  no_log: true
+  when: item.state | default('present') == "absent"
+
+# Add / remove package list for YUM in order of present / latest / absent statuses
+- name: "Install common packages with status=present (yum package manager)"
+  yum:
+    name: "{{ selected_packages_present }}"
+    state: present
+    update_cache: yes
+  when:
+    - selected_packages_present is defined
+    - ansible_pkg_mgr == "yum"
+
+- name: "Install common packages with status=latest (yum package manager)"
+  yum:
+    name: "{{ selected_packages_latest }}"
+    state: latest
+    update_cache: yes
+  when:
+    - selected_packages_latest is defined
+    - ansible_pkg_mgr == "yum"
+
+- name: "Install common packages with status=absent (yum package manager)"
+  yum:
+    name: "{{ selected_packages_absent }}"
+    state: absent
+  when:
+    - selected_packages_absent is defined
+    - ansible_pkg_mgr == "yum"
+
+# Add / remove package list for DNF in order of present / latest / absent statuses
+- name: "Install common packages with status=present (dnf package manager)"
+  dnf:
+    name: "{{ selected_packages_present }}"
+    state: present
+    update_cache: yes
+  when:
+    - selected_packages_present is defined
+    - ansible_pkg_mgr == "dnf"
+
+- name: "Install common packages with status=latest (dnf package manager)"
+  dnf:
+    name: "{{ selected_packages_latest }}"
+    state: latest
+    update_cache: yes
+  when:
+    - selected_packages_latest is defined
+    - ansible_pkg_mgr == "dnf"
+
+- name: "Install common packages with status=absent (dnf package manager)"
+  dnf:
+    name: "{{ selected_packages_absent }}"
+    state: absent
+  when:
+    - selected_packages_absent is defined
+    - ansible_pkg_mgr == "dnf"
+
+# Install/Uninstall list of pkgs for APT via status: present/latest/absent
+- name: "Install common packages with status=present (apt package manager)"
+  apt:
+    name: "{{ selected_packages_present }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 86400
+  when:
+    - selected_packages_present is defined
+    - ansible_pkg_mgr == "apt"
+
+- name: "Install common packages with status=latest (apt package manager)"
+  apt:
+    name: "{{ selected_packages_latest }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 86400
+  when:
+    - selected_packages_latest is defined
+    - ansible_pkg_mgr == "apt"
+
+- name: "Install common packages with status=absent (apt package manager)"
+  apt:
+    name: "{{ selected_packages_absent }}"
+    state: absent
+  when:
+    - selected_packages_absent is defined
+    - ansible_pkg_mgr == "apt"
+
+- name: "Autoremove packages (apt package manager)"
+  apt:
+    autoremove: "{{ autoremove_packages|default(omit) }}"
+  when: ansible_pkg_mgr == "apt"
+
+- name: "Autoremove packages (dnf package manager)"
+  dnf:
+    autoremove: "{{ autoremove_packages|default(omit) }}"
+  when: ansible_pkg_mgr == "dnf"

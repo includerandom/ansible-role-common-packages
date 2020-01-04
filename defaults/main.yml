@@ -1,0 +1,108 @@
+list_packages: []
+list_services: []
+
+# autoremove_packages - yes/no. only for: apt|dnf
+autoremove_packages: yes
+
+# Example:
+# list_packages: []
+# or
+# list_packages:
+#   - name: "Packages for All servers"
+#     packages:
+#       - name: package_name1
+#         #state: present (default, if not set)
+#       - name: package_name2
+#         state: latest
+#       - name: package_name3
+#         state: absent
+#   - name: "Packages for All RedHat servers (<= 7)"
+#     packages_manager: yum
+#     packages:
+#       - name: package_name4
+#   - name: "Packages for All RedHat servers (>= 8)"
+#     packages_manager: dnf
+#     packages:
+#       - name: package_name4
+#   - name: "Packages for All Deb servers"
+#     packages_manager: apt
+#     packages:
+#       - name: package_name4
+#   - name: "Packages for Specific servers"
+#     os_distribution: Ubuntu
+#     packages:
+#       - name: package_name5
+#   - name: "Packages for Specific servers"
+#     packages_manager: apt
+#     os_distribution_major_version:
+#       - "16"
+#       - "18"
+#     packages:
+#       - name: package_name6
+#   - name: "Packages for Specific servers"
+#     packages_manager: apt
+#     os_distribution_major_version: "18"
+#     host_group_names_inventory:
+#       - group1
+#       - group2
+#     packages:
+#       - name: package_name7
+#
+# list_services: []
+# or
+# list_services:
+#   - name: "Services on All servers"
+#     services:
+#       - name: service_name1
+#         enabled: yes
+#         state: started
+#       - name: service_name2
+#         enabled: yes
+#         state: started
+#       - name: service_name3
+#         enabled: yes
+#         state: started
+#   - name: "Services on All RedHat servers (<= 7)"
+#     services_manager: yum
+#     services:
+#       - name: service_name4
+#         enabled: yes
+#         state: started
+#   - name: "Services on All RedHat servers (>= 8)"
+#     services_manager: dnf
+#     services:
+#       - name: service_name4
+#         enabled: yes
+#         state: started
+#   - name: "Services on All Deb servers"
+#     services_manager: apt
+#     services:
+#       - name: service_name4
+#         enabled: yes
+#         state: started
+#   - name: "Services on Specific servers"
+#     os_distribution: Ubuntu
+#     services:
+#       - name: service_name5
+#         enabled: yes
+#         state: started
+#   - name: "Services on Specific servers"
+#     services_manager: apt
+#     os_distribution_major_version:
+#       - "16"
+#       - "18"
+#       - "20"
+#     services:
+#       - name: service_name6
+#         enabled: yes
+#         state: started
+#   - name: "Services on Specific servers"
+#     services_manager: apt
+#     os_distribution_major_version: "18"
+#     host_group_names_inventory:
+#       - group1
+#       - group2
+#     services:
+#       - name: service_name7
+#         enabled: yes
+#         state: started
